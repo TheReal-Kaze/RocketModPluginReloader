@@ -35,4 +35,4 @@ This project includes code from OpenMod, which is licensed under MIT License.
 Modifications have been made to enable dynamic reloading for RocketMod.
 
 Known issues:
-- None anymore
+- translation dont work
