@@ -20,9 +20,9 @@ using AsmResolver.PE.DotNet.Metadata.Tables;
 using AsmResolver.PE.DotNet.Metadata.Tables.Rows;
 using AsmResolver.IO;
 using Rocket.Core.Assets;
-using System.Linq;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
+using System.Linq;
 
 namespace RocketModPluginReloader
 {
@@ -130,11 +130,12 @@ namespace RocketModPluginReloader
             PrivateSet(__instance, "Directory", directory);
 
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-            
-            //Translations
-            var defaultTranslations = new TranslationList();
 
-            if (defaultTranslations != null)
+            //Translations
+            var rocketPluginInstance = (RocketPlugin)__instance;
+            var DefaultTranslations = rocketPluginInstance.DefaultTranslations;
+
+            if ((DefaultTranslations != null) && (DefaultTranslations.Count() != 0))
             {
                 var translationPath = Path.Combine(
                     directory,
@@ -142,12 +143,12 @@ namespace RocketModPluginReloader
 
                 var xmlAsset = new XMLFileAsset<TranslationList>(
                     translationPath,
-                    new Type[]
+                    new Type[2]
                     {
-                    typeof(TranslationList),
-                    typeof(TranslationListEntry)
+                        typeof(TranslationList),
+                        typeof(TranslationListEntry)
                     },
-                    defaultTranslations!
+                    DefaultTranslations
                 );
 
                 var translationsField = AccessTools.Field(type, "translations");
@@ -155,7 +156,7 @@ namespace RocketModPluginReloader
 
                 //Logger.Log("Translations loaded: " + translationsField?.GetValue(__instance) != null ? "Correctly" : "Not Correctly");
 
-                defaultTranslations.AddUnknownEntries(xmlAsset);
+                DefaultTranslations.AddUnknownEntries(xmlAsset);
             }
 
             var stateField = AccessTools.Field(type, "state");
