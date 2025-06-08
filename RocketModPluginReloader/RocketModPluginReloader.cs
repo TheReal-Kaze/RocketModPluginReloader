@@ -118,16 +118,16 @@ namespace RocketModPluginReloader
             var type = __instance.GetType();
             var assembly = type.Assembly;
 
-            PrivateSet(__instance, "Assembly", assembly);
+            PrivateSetBackingField(__instance, "Assembly", assembly);
 
             var name = assembly.GetName().Name;
             int lastUnderscore = name.LastIndexOf('_');
             string unifiedName = lastUnderscore > -1 ? name.Substring(0, lastUnderscore) : name;
 
-            PrivateSet(__instance, "Name", unifiedName);
+            PrivateSetBackingField(__instance, "Name", unifiedName);
 
             var directory = Path.Combine(Rocket.Core.Environment.PluginsDirectory, unifiedName);
-            PrivateSet(__instance, "Directory", directory);
+            PrivateSetBackingField(__instance, "Directory", directory);
 
             if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
@@ -135,33 +135,43 @@ namespace RocketModPluginReloader
             var rocketPluginInstance = (RocketPlugin)__instance;
             var DefaultTranslations = rocketPluginInstance.DefaultTranslations;
 
-            if ((DefaultTranslations != null) && (DefaultTranslations.Count() != 0))
+            var translationPath = Path.Combine(directory, string.Format(Rocket.Core.Environment.PluginTranslationFileTemplate, unifiedName, R.Settings.Instance.LanguageCode));
+
+            if (DefaultTranslations != null /*&& DefaultTranslations.Count() != 0*/)
             {
-                var translationPath = Path.Combine(
-                    directory,
-                    string.Format(Rocket.Core.Environment.PluginTranslationFileTemplate, unifiedName, R.Settings.Instance.LanguageCode));
+                Logger.Log("Default translations found for plugin: " + unifiedName);
+                
 
                 var xmlAsset = new XMLFileAsset<TranslationList>(
                     translationPath,
-                    new Type[2]
-                    {
+                    [
                         typeof(TranslationList),
                         typeof(TranslationListEntry)
-                    },
-                    DefaultTranslations
+                    ],
+                    DefaultTranslations!
                 );
 
-                var translationsField = AccessTools.Field(type, "translations");
-                translationsField?.SetValue(__instance, xmlAsset);
+                PrivateSet(__instance, "translations", xmlAsset);
 
-                //Logger.Log("Translations loaded: " + translationsField?.GetValue(__instance) != null ? "Correctly" : "Not Correctly");
+                var translationsField = AccessTools.Field(type, "translations");
+                Logger.Log("Translations loaded: " + ((translationsField?.GetValue(__instance) != null) ? "Correctly" : "Not Correctly"));
 
                 DefaultTranslations.AddUnknownEntries(xmlAsset);
             }
-
-            var stateField = AccessTools.Field(type, "state");
-            stateField?.SetValue(__instance, PluginState.Unloaded);
-
+            else
+            {
+                Logger.LogWarning("Default translations Null for plugin: " + unifiedName);
+                var xmlAsset = new XMLFileAsset<TranslationList>
+                (
+                    translationPath,
+                    [
+                        typeof(TranslationList),
+                        typeof(TranslationListEntry)
+                    ],
+                    new TranslationList()
+                );
+                PrivateSet(__instance, "translations", xmlAsset);
+            }
             return false;
         }
         public static byte[] ModifyAssembly(byte[] rawAssembly)
@@ -203,10 +213,7 @@ namespace RocketModPluginReloader
                 return output.ToArray();
             }
         }
-        static void PrivateSet<T>(object instance, string propName, T value)
-        {
-            var backingField = AccessTools.Field(instance.GetType(), $"<{propName}>k__BackingField");
-            backingField?.SetValue(instance, value);
-        }
+        static void PrivateSetBackingField<T>(object instance, string propName, T value) => AccessTools.Field(instance.GetType(), $"<{propName}>k__BackingField")?.SetValue(instance, value);
+        static void PrivateSet<T>(object instance, string propName, T value) => AccessTools.Field(instance.GetType(), propName)?.SetValue(instance, value);
     }
 }
