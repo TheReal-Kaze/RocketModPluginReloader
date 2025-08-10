@@ -15,6 +15,7 @@ Place the RocketModPluginReloader folder inside the modules folder of your serve
 Done!
 
 -Blacklist
+
 To prevent the reloader from renaming a plugin (and to skip the name-sensitive reload logic), add its DLL name to the blacklist file.
 
 Path: <ServerRoot>/Rocket/blacklist.rm_reloader
