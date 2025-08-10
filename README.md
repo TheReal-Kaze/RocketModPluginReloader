@@ -14,6 +14,18 @@ This module removes that limitation by patching RocketMod, allowing plugins to b
 Place the RocketModPluginReloader folder inside the modules folder of your server.
 Done!
 
+-Blacklist
+To prevent the reloader from renaming a plugin (and to skip the name-sensitive reload logic), add its DLL name to the blacklist file.
+
+Path: <ServerRoot>/Rocket/blacklist.rm_reloader
+
+Format: one per line, or separate with commas/semicolons
+(PluginName.dll or PluginName — case-insensitive, “.dll” optional)
+
+Auto-create: the file is generated on first run if missing
+
+Effect: the plugin still loads normally, but its assembly name is left unchanged, so u can forget about having the new version load if blacklisted, only the first version loaded will persist even if u put an updated dll
+
 Credits
 
 Some code from OpenMod has been used in this repository.
