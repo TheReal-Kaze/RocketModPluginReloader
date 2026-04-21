@@ -37,7 +37,7 @@ namespace RocketModPluginReloader
             RegisterInput();
 
             AssemblyName assemblyName = Assembly.GetExecutingAssembly().GetName();
-            Logger.Log($"{assemblyName.Name} {assemblyName.Version} has been loaded!");
+            Logger.Log($"{assemblyName.Name} {assemblyName.Version} has been loaded! Made by Kaze with <3");
         }
         public void shutdown()
         {
